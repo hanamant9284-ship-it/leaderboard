@@ -1,0 +1,18 @@
+{
+  "name": "leaderboard-local",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "seed": "node src/seed/generateSampleData.js"
+  },
+  "dependencies": {
+    "date-fns": "^2.30.0",
+    "date-fns-tz": "^1.3.8",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongodb": "^5.9.0",
+    "redis": "^4.7.1"
+  }
+}
