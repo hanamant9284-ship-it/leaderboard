@@ -7,6 +7,7 @@ import { ensureIndexes as ensureSnapshotIndexes } from './models/leaderboardSnap
 import eventsApi from './routes/eventsApi.js';
 import leaderboardApi from './routes/leaderboardApi.js';
 import adminApi from './routes/adminApi.js';
+import authApi from './routes/authApi.js';
 
 const app = express();
 app.use(express.json());
@@ -19,11 +20,13 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.use(authApi);
 app.use(eventsApi);
 app.use(leaderboardApi);
 app.use(adminApi);
 
 app.get('/', (req, res) => res.json({ status: 'leaderboard-local ok' }));
+app.get('/health', (req, res) => res.json({ status: 'Up' }));
 
 const PORT = process.env.PORT || 3000;
 

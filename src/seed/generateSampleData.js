@@ -3,16 +3,17 @@ import { createIndexes as createUserIndexes } from '../models/users.js';
 import { upsertPointsConfig } from '../models/pointsConfig.js';
 import { processEvent } from '../services/eventIngestService.js';
 import { clearCache } from '../services/pointsConfigService.js';
+import { hashPassword } from '../models/auth.js';
 
 const users = [
-  { _id: 'managerA', name: 'Top Manager', role: 'MANAGER', managerId: null },
-  { _id: 'managerB', name: 'Mid Manager B', role: 'MANAGER', managerId: 'managerA' },
-  { _id: 'managerC', name: 'Mid Manager C', role: 'MANAGER', managerId: 'managerA' },
-  { _id: 'agent1', name: 'Agent One', role: 'AGENT', managerId: 'managerB' },
-  { _id: 'agent2', name: 'Agent Two', role: 'AGENT', managerId: 'managerB' },
-  { _id: 'agent3', name: 'Agent Three', role: 'AGENT', managerId: 'managerC' },
-  { _id: 'agent4', name: 'Agent Four', role: 'AGENT', managerId: 'managerC' },
-  { _id: 'agent5', name: 'Agent Five', role: 'AGENT', managerId: 'managerB' }
+  { _id: 'managerA', name: 'Top Manager', role: 'MANAGER', managerId: null, password: 'managerA123' },
+  { _id: 'managerB', name: 'Mid Manager B', role: 'MANAGER', managerId: 'managerA', password: 'managerB123' },
+  { _id: 'managerC', name: 'Mid Manager C', role: 'MANAGER', managerId: 'managerA', password: 'managerC123' },
+  { _id: 'agent1', name: 'Agent One', role: 'AGENT', managerId: 'managerB', password: 'agent1123' },
+  { _id: 'agent2', name: 'Agent Two', role: 'AGENT', managerId: 'managerB', password: 'agent2123' },
+  { _id: 'agent3', name: 'Agent Three', role: 'AGENT', managerId: 'managerC', password: 'agent3123' },
+  { _id: 'agent4', name: 'Agent Four', role: 'AGENT', managerId: 'managerC', password: 'agent4123' },
+  { _id: 'agent5', name: 'Agent Five', role: 'AGENT', managerId: 'managerB', password: 'agent5123' }
 ];
 
 const pointsConfig = [
@@ -47,17 +48,29 @@ async function main() {
 
   console.log('Seeding users...');
   const db = await getDb();
-  await Promise.all(users.map((user) =>
-    db.collection('users').updateOne(
+  await Promise.all(users.map((user) => {
+    const { password, ...userData } = user;
+    return db.collection('users').updateOne(
       { _id: user._id },
-      { $set: user },
+      { $set: userData },
       { upsert: true }
-    )
-  ));
+    );
+  }));
 
   console.log('Seeding points config...');
   await Promise.all(pointsConfig.map((row) => upsertPointsConfig(row.actionType, row.role, row.points)));
   clearCache();
+  
+  console.log('Seeding initial passwords...');
+  await Promise.all(users.map(async (user) => {
+    const { password, _id } = user;
+    if (!password) return;
+    const passwordHash = await hashPassword(password);
+    await db.collection('users').updateOne(
+      { _id },
+      { $set: { passwordHash } }
+    );
+  }));
 
   const eventCount = 120;
   let applied = 0;

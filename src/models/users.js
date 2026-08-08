@@ -1,4 +1,5 @@
 import { getDb } from '../db.js';
+import { hashPassword, comparePassword } from './auth.js';
 
 const COLLECTION = 'users';
 
@@ -10,6 +11,30 @@ export async function getUsersCollection() {
 export async function findUserById(userId) {
   const users = await getUsersCollection();
   return users.findOne({ _id: userId });
+}
+
+export async function findUserByCredentials(userId, password) {
+  const users = await getUsersCollection();
+  const user = await users.findOne({ _id: userId });
+  if (!user || !user.passwordHash) {
+    return null;
+  }
+
+  const matched = await comparePassword(password, user.passwordHash);
+  return matched ? user : null;
+}
+
+export async function createUser({ userId, name, role, managerId, password }) {
+  const users = await getUsersCollection();
+  const passwordHash = await hashPassword(password);
+  return users.insertOne({
+    _id: userId,
+    name,
+    role,
+    managerId: managerId || null,
+    passwordHash,
+    createdAt: new Date()
+  });
 }
 
 export async function insertUsers(usersArray) {

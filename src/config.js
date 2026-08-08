@@ -11,7 +11,8 @@ const required = [
   'MONGO_URI',
   'REDIS_URL',
   'TIMEZONE',
-  'CONFIG_CACHE_TTL_SECONDS'
+  'CONFIG_CACHE_TTL_SECONDS',
+  'JWT_SECRET'
 ];
 
 for (const key of required) {
@@ -24,6 +25,7 @@ export const MONGO_URI = process.env.MONGO_URI;
 export const REDIS_URL = process.env.REDIS_URL;
 export const TIMEZONE = process.env.TIMEZONE;
 export const CONFIG_CACHE_TTL_SECONDS = Number(process.env.CONFIG_CACHE_TTL_SECONDS);
+export const JWT_SECRET = process.env.JWT_SECRET;
 
 export default {
   MONGO_URI,
